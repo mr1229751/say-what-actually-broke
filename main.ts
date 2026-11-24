@@ -5,7 +5,7 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const LINE =
-  "Save failed: your work is safe in memory, but the disk is full — delete something you don't need, then press Save again, because we will not pretend this was a mysterious glitch.";
+  "Save failed — not a glitch: the disk is full, your work is safe in memory, so delete something you no longer need and press Save again; that is the whole problem and the whole fix.";
 
 // Gate guard: the sealed scorer only accepts UTF-8 text of 1-200
 // characters, not only whitespace. The line must also stay a single
