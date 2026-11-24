@@ -2,7 +2,7 @@
 // Emits one fixed plain-language error message into the scorer's
 // output directory. Node standard library only; output never varies.
 
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
 const MESSAGE =
@@ -27,4 +27,12 @@ assertGateOk(MESSAGE);
 
 const targetDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
 mkdirSync(targetDir, { recursive: true });
-writeFileSync(join(targetDir, "entry.txt"), MESSAGE, { encoding: "utf8" });
+const entryPath = join(targetDir, "entry.txt");
+writeFileSync(entryPath, MESSAGE, { encoding: "utf8" });
+
+// Gate safety net: re-read what landed on disk and confirm it is still
+// exactly the validated message, so a partial or altered write fails
+// loudly instead of silently scoring as a different entry.
+if (readFileSync(entryPath, "utf8") !== MESSAGE) {
+  throw new Error("written entry.txt does not match the validated message");
+}
