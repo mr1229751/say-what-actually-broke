@@ -1,25 +1,30 @@
-// Say What Actually Broke — make.fun entry.
-// Writes the entry line (exactly one line of text) to /output/entry.txt.
-// Node standard library only; deterministic: same bytes on every run.
+// Entry point for the "Say What Actually Broke" bounty.
+// Emits one fixed plain-language error message into the scorer's
+// output directory. Node standard library only; output never varies.
+
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const LINE =
+const MESSAGE =
   "Save failed — not a glitch: the disk is full, your work is safe in memory, so delete something you no longer need and press Save again; that is the whole problem and the whole fix.";
 
-// Gate guard: the sealed scorer only accepts UTF-8 text of 1-200
-// characters, not only whitespace. The line must also stay a single
-// line, so reject line breaks rather than trusting the length check.
-if (
-  LINE.length < 1 ||
-  LINE.length > 200 ||
-  LINE.includes("\n") ||
-  LINE.includes("\r") ||
-  !LINE.trim()
-) {
-  throw new Error("entry line violates the gate constraints");
+const MAX_CHARS = 200;
+
+function assertGateOk(text: string): void {
+  const chars = [...text].length;
+  if (chars < 1 || chars > MAX_CHARS) {
+    throw new Error(`message must be 1-${MAX_CHARS} characters, got ${chars}`);
+  }
+  if (text.includes("\n") || text.includes("\r")) {
+    throw new Error("message must fit on a single line");
+  }
+  if (text.trim().length === 0) {
+    throw new Error("message must not be blank");
+  }
 }
 
-const outDir = process.env.MAKEFUN_OUTPUT_DIR || "/output";
-mkdirSync(outDir, { recursive: true });
-writeFileSync(join(outDir, "entry.txt"), LINE, "utf8");
+assertGateOk(MESSAGE);
+
+const targetDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+mkdirSync(targetDir, { recursive: true });
+writeFileSync(join(targetDir, "entry.txt"), MESSAGE, { encoding: "utf8" });
